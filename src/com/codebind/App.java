@@ -1,8 +1,10 @@
 package com.codebind;
 
+import java.awt.*;
 import java.io.*;
 import java.util.*;
-
+import java.net.*;
+import java.text.*;
 import java.time.*;
 
 import java.time.LocalDateTime;
@@ -30,7 +32,7 @@ public class App {
     private JButton btn_21;
     private JButton btn_31;
     private JButton btn_02;
-    private JButton btn_00;
+    public JButton btn_00;
     private JButton btn_10;
     private JButton btn_01;
     private JButton btn_12;
@@ -46,6 +48,7 @@ public class App {
     private JButton btn_13;
     private JButton btn_23;
     private JComboBox comboBox1;
+    private JCheckBox echoServerCheckBox;
     private JRadioButton radE;
 
 
@@ -55,6 +58,18 @@ public class App {
         LocalDateTime now = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String formatDateTime = now.format(formatter);
+
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    new App().startServer();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
+
 
 
         JFrame frame = new JFrame("App");
@@ -77,19 +92,25 @@ public class App {
         return conn;
     }
 
+    public void bubbaButton(){
+        btn_00.setBackground(Color.magenta);
+   }
+
+
+
     public void insertStudent(String classID,Integer studentNo,Integer seatNo, String studentName) {
-        String sql = "INSERT INTO StudentTable(studentNo,seatNo,studentName,classID) VALUES(?,?,?,?)";
-        try (Connection conn = this.connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            String sql = "INSERT INTO StudentTable(studentNo,seatNo,studentName,classID) VALUES(?,?,?,?)";
+            try (Connection conn = this.connect();
+                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            pstmt.setInt(1, studentNo);
-            pstmt.setInt(2, seatNo);
-            pstmt.setString(3, studentName);
-            pstmt.setString(4,classID);
-            pstmt.executeUpdate();
+                pstmt.setInt(1, studentNo);
+                pstmt.setInt(2, seatNo);
+                pstmt.setString(3, studentName);
+                pstmt.setString(4,classID);
+                pstmt.executeUpdate();
 
-            System.out.printf("%d %d %s\n", studentNo, seatNo, studentName);
-        }
+                System.out.printf("%d %d %s\n", studentNo, seatNo, studentName);
+            }
             catch (SQLException e) {
                 System.out.println(e.getMessage());
             }
@@ -167,12 +188,49 @@ public class App {
     }
 
 
+    public void startServer() throws IOException {
+        // server is listening on port 5056
+        ServerSocket ss = new ServerSocket(5056);
+
+        // running infinite loop for getting
+        // client request
+        while (true)
+        {
+            Socket s = null;
+
+            try
+            {
+                // socket object to receive incoming client requests
+                s = ss.accept();
+
+                System.out.println("A new client is connected : " + s);
+
+                // obtaining input and out streams
+                DataInputStream dis = new DataInputStream(s.getInputStream());
+                DataOutputStream dos = new DataOutputStream(s.getOutputStream());
+
+                System.out.println("Assigning new thread for this client");
+
+                // create a new thread object
+                Thread t = new ClientHandler(s, dis, dos);
+
+                // Invoking the start() method
+                t.start();
+
+            }
+            catch (Exception e){
+                s.close();
+                e.printStackTrace();
+            }
+        }
+    }
+
     public App() {
 
-        //selectAll();
-        //selectStudent(4);
 
-      //  populateStudentTableFromCSV();
+
+
+      //  bubbaButton();
 
         ArrayList<Integer> studentNoArray = new ArrayList<Integer>(30);
 
@@ -183,279 +241,332 @@ public class App {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                String studentName = (String)((JButton)e.getSource()).getClientProperty( "studentName" );
-                Integer studentNo = (Integer)((JButton)e.getSource()).getClientProperty( "studentNo" );
-                Integer seatNo = (Integer)((JButton)e.getSource()).getClientProperty( "seatNo" );
-                String classID = (String)((JButton)e.getSource()).getClientProperty( "classID" );
+                String studentName = (String) ((JButton) e.getSource()).getClientProperty("studentName");
+                Integer studentNo = (Integer) ((JButton) e.getSource()).getClientProperty("studentNo");
+                Integer seatNo = (Integer) ((JButton) e.getSource()).getClientProperty("seatNo");
+                String classID = (String) ((JButton) e.getSource()).getClientProperty("classID");
 
                 studentDetail(studentNo, classID);
-      }
+            }
         });
 
         btn_01.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String studentName = (String)((JButton)e.getSource()).getClientProperty( "studentName" );
-                Integer studentNo = (Integer)((JButton)e.getSource()).getClientProperty( "studentNo" );
-                Integer seatNo = (Integer)((JButton)e.getSource()).getClientProperty( "seatNo" );
-                String classID = (String)((JButton)e.getSource()).getClientProperty( "classID" );
+                String studentName = (String) ((JButton) e.getSource()).getClientProperty("studentName");
+                Integer studentNo = (Integer) ((JButton) e.getSource()).getClientProperty("studentNo");
+                Integer seatNo = (Integer) ((JButton) e.getSource()).getClientProperty("seatNo");
+                String classID = (String) ((JButton) e.getSource()).getClientProperty("classID");
 
-                studentDetail(studentNo, classID);  }
+                studentDetail(studentNo, classID);
+            }
         });
 
         btn_02.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String studentName = (String)((JButton)e.getSource()).getClientProperty( "studentName" );
-                Integer studentNo = (Integer)((JButton)e.getSource()).getClientProperty( "studentNo" );
-                Integer seatNo = (Integer)((JButton)e.getSource()).getClientProperty( "seatNo" );
-                String classID = (String)((JButton)e.getSource()).getClientProperty( "classID" );
+                String studentName = (String) ((JButton) e.getSource()).getClientProperty("studentName");
+                Integer studentNo = (Integer) ((JButton) e.getSource()).getClientProperty("studentNo");
+                Integer seatNo = (Integer) ((JButton) e.getSource()).getClientProperty("seatNo");
+                String classID = (String) ((JButton) e.getSource()).getClientProperty("classID");
 
-                studentDetail(studentNo, classID); }
+                studentDetail(studentNo, classID);
+            }
         });
 
         btn_03.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String studentName = (String)((JButton)e.getSource()).getClientProperty( "studentName" );
-                Integer studentNo = (Integer)((JButton)e.getSource()).getClientProperty( "studentNo" );
-                Integer seatNo = (Integer)((JButton)e.getSource()).getClientProperty( "seatNo" );
-                String classID = (String)((JButton)e.getSource()).getClientProperty( "classID" );
+                String studentName = (String) ((JButton) e.getSource()).getClientProperty("studentName");
+                Integer studentNo = (Integer) ((JButton) e.getSource()).getClientProperty("studentNo");
+                Integer seatNo = (Integer) ((JButton) e.getSource()).getClientProperty("seatNo");
+                String classID = (String) ((JButton) e.getSource()).getClientProperty("classID");
 
-                studentDetail(studentNo, classID);  }
+                studentDetail(studentNo, classID);
+            }
         });
 
 
         btn_10.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String studentName = (String)((JButton)e.getSource()).getClientProperty( "studentName" );
-                Integer studentNo = (Integer)((JButton)e.getSource()).getClientProperty( "studentNo" );
-                Integer seatNo = (Integer)((JButton)e.getSource()).getClientProperty( "seatNo" );
-                String classID = (String)((JButton)e.getSource()).getClientProperty( "classID" );
+                String studentName = (String) ((JButton) e.getSource()).getClientProperty("studentName");
+                Integer studentNo = (Integer) ((JButton) e.getSource()).getClientProperty("studentNo");
+                Integer seatNo = (Integer) ((JButton) e.getSource()).getClientProperty("seatNo");
+                String classID = (String) ((JButton) e.getSource()).getClientProperty("classID");
 
-                studentDetail(studentNo,classID); }
+                studentDetail(studentNo, classID);
+            }
         });
 
         btn_11.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String studentName = (String)((JButton)e.getSource()).getClientProperty( "studentName" );
-                Integer studentNo = (Integer)((JButton)e.getSource()).getClientProperty( "studentNo" );
-                Integer seatNo = (Integer)((JButton)e.getSource()).getClientProperty( "seatNo" );
-                String classID = (String)((JButton)e.getSource()).getClientProperty( "classID" );
+                String studentName = (String) ((JButton) e.getSource()).getClientProperty("studentName");
+                Integer studentNo = (Integer) ((JButton) e.getSource()).getClientProperty("studentNo");
+                Integer seatNo = (Integer) ((JButton) e.getSource()).getClientProperty("seatNo");
+                String classID = (String) ((JButton) e.getSource()).getClientProperty("classID");
 
-                studentDetail(studentNo,classID);  }
+                studentDetail(studentNo, classID);
+            }
         });
 
         btn_12.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String studentName = (String)((JButton)e.getSource()).getClientProperty( "studentName" );
-                Integer studentNo = (Integer)((JButton)e.getSource()).getClientProperty( "studentNo" );
-                Integer seatNo = (Integer)((JButton)e.getSource()).getClientProperty( "seatNo" );
-                String classID = (String)((JButton)e.getSource()).getClientProperty( "classID" );
+                String studentName = (String) ((JButton) e.getSource()).getClientProperty("studentName");
+                Integer studentNo = (Integer) ((JButton) e.getSource()).getClientProperty("studentNo");
+                Integer seatNo = (Integer) ((JButton) e.getSource()).getClientProperty("seatNo");
+                String classID = (String) ((JButton) e.getSource()).getClientProperty("classID");
 
-                studentDetail(studentNo, classID); }
+                studentDetail(studentNo, classID);
+            }
         });
 
         btn_13.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String studentName = (String)((JButton)e.getSource()).getClientProperty( "studentName" );
-                Integer studentNo = (Integer)((JButton)e.getSource()).getClientProperty( "studentNo" );
-                Integer seatNo = (Integer)((JButton)e.getSource()).getClientProperty( "seatNo" );
-                String classID = (String)((JButton)e.getSource()).getClientProperty( "classID" );
+                String studentName = (String) ((JButton) e.getSource()).getClientProperty("studentName");
+                Integer studentNo = (Integer) ((JButton) e.getSource()).getClientProperty("studentNo");
+                Integer seatNo = (Integer) ((JButton) e.getSource()).getClientProperty("seatNo");
+                String classID = (String) ((JButton) e.getSource()).getClientProperty("classID");
 
-                studentDetail(studentNo,classID);   }
+                studentDetail(studentNo, classID);
+            }
         });
 
 
         btn_20.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String studentName = (String)((JButton)e.getSource()).getClientProperty( "studentName" );
-                Integer studentNo = (Integer)((JButton)e.getSource()).getClientProperty( "studentNo" );
-                Integer seatNo = (Integer)((JButton)e.getSource()).getClientProperty( "seatNo" );
-                String classID = (String)((JButton)e.getSource()).getClientProperty( "classID" );
+                String studentName = (String) ((JButton) e.getSource()).getClientProperty("studentName");
+                Integer studentNo = (Integer) ((JButton) e.getSource()).getClientProperty("studentNo");
+                Integer seatNo = (Integer) ((JButton) e.getSource()).getClientProperty("seatNo");
+                String classID = (String) ((JButton) e.getSource()).getClientProperty("classID");
 
-                studentDetail(studentNo,classID);  }
+                studentDetail(studentNo, classID);
+            }
         });
 
         btn_21.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String studentName = (String)((JButton)e.getSource()).getClientProperty( "studentName" );
-                Integer studentNo = (Integer)((JButton)e.getSource()).getClientProperty( "studentNo" );
-                Integer seatNo = (Integer)((JButton)e.getSource()).getClientProperty( "seatNo" );
-                String classID = (String)((JButton)e.getSource()).getClientProperty( "classID" );
+                String studentName = (String) ((JButton) e.getSource()).getClientProperty("studentName");
+                Integer studentNo = (Integer) ((JButton) e.getSource()).getClientProperty("studentNo");
+                Integer seatNo = (Integer) ((JButton) e.getSource()).getClientProperty("seatNo");
+                String classID = (String) ((JButton) e.getSource()).getClientProperty("classID");
 
-                studentDetail(studentNo,classID);   }
+                studentDetail(studentNo, classID);
+            }
         });
 
         btn_22.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String studentName = (String)((JButton)e.getSource()).getClientProperty( "studentName" );
-                Integer studentNo = (Integer)((JButton)e.getSource()).getClientProperty( "studentNo" );
-                Integer seatNo = (Integer)((JButton)e.getSource()).getClientProperty( "seatNo" );
-                String classID = (String)((JButton)e.getSource()).getClientProperty( "classID" );
+                String studentName = (String) ((JButton) e.getSource()).getClientProperty("studentName");
+                Integer studentNo = (Integer) ((JButton) e.getSource()).getClientProperty("studentNo");
+                Integer seatNo = (Integer) ((JButton) e.getSource()).getClientProperty("seatNo");
+                String classID = (String) ((JButton) e.getSource()).getClientProperty("classID");
 
-                studentDetail(studentNo,classID);  }
+                studentDetail(studentNo, classID);
+            }
         });
 
         btn_23.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String studentName = (String)((JButton)e.getSource()).getClientProperty( "studentName" );
-                Integer studentNo = (Integer)((JButton)e.getSource()).getClientProperty( "studentNo" );
-                Integer seatNo = (Integer)((JButton)e.getSource()).getClientProperty( "seatNo" );
-                String classID = (String)((JButton)e.getSource()).getClientProperty( "classID" );
+                String studentName = (String) ((JButton) e.getSource()).getClientProperty("studentName");
+                Integer studentNo = (Integer) ((JButton) e.getSource()).getClientProperty("studentNo");
+                Integer seatNo = (Integer) ((JButton) e.getSource()).getClientProperty("seatNo");
+                String classID = (String) ((JButton) e.getSource()).getClientProperty("classID");
 
-                studentDetail(studentNo,classID);  }
+                studentDetail(studentNo, classID);
+            }
         });
 
 
         btn_30.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String studentName = (String)((JButton)e.getSource()).getClientProperty( "studentName" );
-                Integer studentNo = (Integer)((JButton)e.getSource()).getClientProperty( "studentNo" );
-                Integer seatNo = (Integer)((JButton)e.getSource()).getClientProperty( "seatNo" );
-                String classID = (String)((JButton)e.getSource()).getClientProperty( "classID" );
+                String studentName = (String) ((JButton) e.getSource()).getClientProperty("studentName");
+                Integer studentNo = (Integer) ((JButton) e.getSource()).getClientProperty("studentNo");
+                Integer seatNo = (Integer) ((JButton) e.getSource()).getClientProperty("seatNo");
+                String classID = (String) ((JButton) e.getSource()).getClientProperty("classID");
 
-                studentDetail(studentNo,classID);  }
+                studentDetail(studentNo, classID);
+            }
         });
 
         btn_31.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String studentName = (String)((JButton)e.getSource()).getClientProperty( "studentName" );
-                Integer studentNo = (Integer)((JButton)e.getSource()).getClientProperty( "studentNo" );
-                Integer seatNo = (Integer)((JButton)e.getSource()).getClientProperty( "seatNo" );
-                String classID = (String)((JButton)e.getSource()).getClientProperty( "classID" );
+                String studentName = (String) ((JButton) e.getSource()).getClientProperty("studentName");
+                Integer studentNo = (Integer) ((JButton) e.getSource()).getClientProperty("studentNo");
+                Integer seatNo = (Integer) ((JButton) e.getSource()).getClientProperty("seatNo");
+                String classID = (String) ((JButton) e.getSource()).getClientProperty("classID");
 
-                studentDetail(studentNo,classID); }
+                studentDetail(studentNo, classID);
+            }
         });
 
         btn_32.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String studentName = (String)((JButton)e.getSource()).getClientProperty( "studentName" );
-                Integer studentNo = (Integer)((JButton)e.getSource()).getClientProperty( "studentNo" );
-                Integer seatNo = (Integer)((JButton)e.getSource()).getClientProperty( "seatNo" );
-                String classID = (String)((JButton)e.getSource()).getClientProperty( "classID" );
+                String studentName = (String) ((JButton) e.getSource()).getClientProperty("studentName");
+                Integer studentNo = (Integer) ((JButton) e.getSource()).getClientProperty("studentNo");
+                Integer seatNo = (Integer) ((JButton) e.getSource()).getClientProperty("seatNo");
+                String classID = (String) ((JButton) e.getSource()).getClientProperty("classID");
 
-                studentDetail(studentNo,classID);    }
+                studentDetail(studentNo, classID);
+            }
         });
 
         btn_33.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String studentName = (String)((JButton)e.getSource()).getClientProperty( "studentName" );
-                Integer studentNo = (Integer)((JButton)e.getSource()).getClientProperty( "studentNo" );
-                Integer seatNo = (Integer)((JButton)e.getSource()).getClientProperty( "seatNo" );
-                String classID = (String)((JButton)e.getSource()).getClientProperty( "classID" );
+                String studentName = (String) ((JButton) e.getSource()).getClientProperty("studentName");
+                Integer studentNo = (Integer) ((JButton) e.getSource()).getClientProperty("studentNo");
+                Integer seatNo = (Integer) ((JButton) e.getSource()).getClientProperty("seatNo");
+                String classID = (String) ((JButton) e.getSource()).getClientProperty("classID");
 
-                studentDetail(studentNo,classID);  }
+                studentDetail(studentNo, classID);
+            }
         });
 
 
         btn_40.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String studentName = (String)((JButton)e.getSource()).getClientProperty( "studentName" );
-                Integer studentNo = (Integer)((JButton)e.getSource()).getClientProperty( "studentNo" );
-                Integer seatNo = (Integer)((JButton)e.getSource()).getClientProperty( "seatNo" );
-                String classID = (String)((JButton)e.getSource()).getClientProperty( "classID" );
+                String studentName = (String) ((JButton) e.getSource()).getClientProperty("studentName");
+                Integer studentNo = (Integer) ((JButton) e.getSource()).getClientProperty("studentNo");
+                Integer seatNo = (Integer) ((JButton) e.getSource()).getClientProperty("seatNo");
+                String classID = (String) ((JButton) e.getSource()).getClientProperty("classID");
 
-                studentDetail(studentNo,classID); }
+                studentDetail(studentNo, classID);
+            }
         });
 
         btn_41.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String studentName = (String)((JButton)e.getSource()).getClientProperty( "studentName" );
-                Integer studentNo = (Integer)((JButton)e.getSource()).getClientProperty( "studentNo" );
-                Integer seatNo = (Integer)((JButton)e.getSource()).getClientProperty( "seatNo" );
-                String classID = (String)((JButton)e.getSource()).getClientProperty( "classID" );
+                String studentName = (String) ((JButton) e.getSource()).getClientProperty("studentName");
+                Integer studentNo = (Integer) ((JButton) e.getSource()).getClientProperty("studentNo");
+                Integer seatNo = (Integer) ((JButton) e.getSource()).getClientProperty("seatNo");
+                String classID = (String) ((JButton) e.getSource()).getClientProperty("classID");
 
-                studentDetail(studentNo,classID); }
+                studentDetail(studentNo, classID);
+            }
         });
 
         btn_42.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String studentName = (String)((JButton)e.getSource()).getClientProperty( "studentName" );
-                Integer studentNo = (Integer)((JButton)e.getSource()).getClientProperty( "studentNo" );
-                Integer seatNo = (Integer)((JButton)e.getSource()).getClientProperty( "seatNo" );
-                String classID = (String)((JButton)e.getSource()).getClientProperty( "classID" );
+                String studentName = (String) ((JButton) e.getSource()).getClientProperty("studentName");
+                Integer studentNo = (Integer) ((JButton) e.getSource()).getClientProperty("studentNo");
+                Integer seatNo = (Integer) ((JButton) e.getSource()).getClientProperty("seatNo");
+                String classID = (String) ((JButton) e.getSource()).getClientProperty("classID");
 
-                studentDetail(studentNo,classID); }
+                studentDetail(studentNo, classID);
+            }
         });
 
         btn_43.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String studentName = (String)((JButton)e.getSource()).getClientProperty( "studentName" );
-                Integer studentNo = (Integer)((JButton)e.getSource()).getClientProperty( "studentNo" );
-                Integer seatNo = (Integer)((JButton)e.getSource()).getClientProperty( "seatNo" );
-                String classID = (String)((JButton)e.getSource()).getClientProperty( "classID" );
+                String studentName = (String) ((JButton) e.getSource()).getClientProperty("studentName");
+                Integer studentNo = (Integer) ((JButton) e.getSource()).getClientProperty("studentNo");
+                Integer seatNo = (Integer) ((JButton) e.getSource()).getClientProperty("seatNo");
+                String classID = (String) ((JButton) e.getSource()).getClientProperty("classID");
 
-                studentDetail(studentNo,classID);  }
+                studentDetail(studentNo, classID);
+            }
         });
 
 
         btn_50.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String studentName = (String)((JButton)e.getSource()).getClientProperty( "studentName" );
-                Integer studentNo = (Integer)((JButton)e.getSource()).getClientProperty( "studentNo" );
-                Integer seatNo = (Integer)((JButton)e.getSource()).getClientProperty( "seatNo" );
-                String classID = (String)((JButton)e.getSource()).getClientProperty( "classID" );
+                String studentName = (String) ((JButton) e.getSource()).getClientProperty("studentName");
+                Integer studentNo = (Integer) ((JButton) e.getSource()).getClientProperty("studentNo");
+                Integer seatNo = (Integer) ((JButton) e.getSource()).getClientProperty("seatNo");
+                String classID = (String) ((JButton) e.getSource()).getClientProperty("classID");
 
-                studentDetail(studentNo,classID);    }
+                studentDetail(studentNo, classID);
+            }
         });
 
         btn_51.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String studentName = (String)((JButton)e.getSource()).getClientProperty( "studentName" );
-                Integer studentNo = (Integer)((JButton)e.getSource()).getClientProperty( "studentNo" );
-                Integer seatNo = (Integer)((JButton)e.getSource()).getClientProperty( "seatNo" );
-                String classID = (String)((JButton)e.getSource()).getClientProperty( "classID" );
+                String studentName = (String) ((JButton) e.getSource()).getClientProperty("studentName");
+                Integer studentNo = (Integer) ((JButton) e.getSource()).getClientProperty("studentNo");
+                Integer seatNo = (Integer) ((JButton) e.getSource()).getClientProperty("seatNo");
+                String classID = (String) ((JButton) e.getSource()).getClientProperty("classID");
 
-                studentDetail(studentNo,classID);   }
+                studentDetail(studentNo, classID);
+            }
         });
 
         btn_52.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String studentName = (String)((JButton)e.getSource()).getClientProperty( "studentName" );
-                Integer studentNo = (Integer)((JButton)e.getSource()).getClientProperty( "studentNo" );
-                Integer seatNo = (Integer)((JButton)e.getSource()).getClientProperty( "seatNo" );
-                String classID = (String)((JButton)e.getSource()).getClientProperty( "classID" );
+                String studentName = (String) ((JButton) e.getSource()).getClientProperty("studentName");
+                Integer studentNo = (Integer) ((JButton) e.getSource()).getClientProperty("studentNo");
+                Integer seatNo = (Integer) ((JButton) e.getSource()).getClientProperty("seatNo");
+                String classID = (String) ((JButton) e.getSource()).getClientProperty("classID");
 
-                studentDetail(studentNo,classID);   }
+                studentDetail(studentNo, classID);
+            }
         });
 
         btn_53.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String studentName = (String)((JButton)e.getSource()).getClientProperty( "studentName" );
-                Integer studentNo = (Integer)((JButton)e.getSource()).getClientProperty( "studentNo" );
-                Integer seatNo = (Integer)((JButton)e.getSource()).getClientProperty( "seatNo" );
-                String classID = (String)((JButton)e.getSource()).getClientProperty( "classID" );
+                String studentName = (String) ((JButton) e.getSource()).getClientProperty("studentName");
+                Integer studentNo = (Integer) ((JButton) e.getSource()).getClientProperty("studentNo");
+                Integer seatNo = (Integer) ((JButton) e.getSource()).getClientProperty("seatNo");
+                String classID = (String) ((JButton) e.getSource()).getClientProperty("classID");
 
-                studentDetail(studentNo,classID);   }
+                studentDetail(studentNo, classID);
+            }
         });
 
         comboBox1.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-               JComboBox combo1 = (JComboBox)e.getSource();
-               System.out.println(combo1.getSelectedItem().toString());
-               setButtonNames(combo1.getSelectedItem().toString());
+                JComboBox combo1 = (JComboBox) e.getSource();
+                System.out.println(combo1.getSelectedItem().toString());
+                setButtonNames(combo1.getSelectedItem().toString());
+            }
+        });
+
+        echoServerCheckBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                int portNumber = 4444;
+
+                System.out.println("Bubba is listening");
+
+                try (
+                        ServerSocket serverSocket =
+                                new ServerSocket(Integer.parseInt("4444"));
+                        Socket clientSocket = serverSocket.accept();
+                        PrintWriter out =
+                                new PrintWriter(clientSocket.getOutputStream(), true);
+                        BufferedReader in = new BufferedReader(
+                                new InputStreamReader(clientSocket.getInputStream()));
+                ) {
+                    String inputLine;
+                    while ((inputLine = in.readLine()) != null) {
+                        out.println("Bubba " + inputLine);
+                        System.out.println(inputLine);
+                    }
+                } catch (IOException ee) {
+                    System.out.println("Exception caught when trying to listen on port "
+                            + portNumber + " or listening for a connection");
+                    System.out.println(ee.getMessage());
+                }
             }
         });
     }
